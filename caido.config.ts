@@ -4,7 +4,7 @@ export default defineConfig({
   id: "saml-raider",
   name: "SAML Raider",
   description: "SAML2 manipulation and certificate management plugin for Caido.",
-  version: "0.1.0",
+  version: "1.0.4",
   author: {
     name: "insomnia1102",
     email: "marucube35@gmail.com",
