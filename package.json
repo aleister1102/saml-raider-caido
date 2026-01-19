@@ -1,0 +1,36 @@
+{
+  "name": "@caido-community/saml-raider",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "caido-dev",
+    "watch": "caido-dev watch",
+    "build": "caido-dev build",
+    "package": "caido-dev build && cd dist/plugin_package && zip -r ../plugin_package.zip .",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.3.0",
+    "node-forge": "^1.3.1",
+    "pako": "^2.1.0",
+    "vue": "^3.4.0",
+    "xml-crypto": "^6.1.2"
+  },
+  "devDependencies": {
+    "@caido-community/dev": "^0.1.6",
+    "@caido/sdk-backend": "^0.54.1",
+    "@caido/sdk-frontend": "^0.54.1",
+    "@types/node": "^20.0.0",
+    "@types/node-forge": "^1.3.11",
+    "@types/pako": "^2.0.3",
+    "@vitest/ui": "^4.0.17",
+    "@xmldom/xmldom": "^0.8.11",
+    "fast-check": "^4.5.3",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.17"
+  }
+}
