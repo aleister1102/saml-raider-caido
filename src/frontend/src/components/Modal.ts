@@ -140,17 +140,29 @@ export const showInputModal = (
       variant: "tertiary",
       size: "small",
     });
-    cancelBtn.addEventListener("click", () => {
-      overlay.remove();
-      resolve(null);
-    });
-    actions.appendChild(cancelBtn);
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        close(null);
+      } else if (e.key === "Enter" && !e.shiftKey) {
+        // Submit on Enter (unless in textarea with shift)
+        const activeElement = document.activeElement;
+        if (activeElement?.tagName !== "TEXTAREA") {
+          confirmBtn.click();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
 
-    const confirmBtn = caido.ui.button({
-      label: options.confirmLabel || "OK",
-      variant: "primary",
-      size: "small",
+    const close = (result: ModalResult | null) => {
+      overlay.remove();
+      document.removeEventListener("keydown", handleKeydown);
+      resolve(result);
+    };
+
+    cancelBtn.addEventListener("click", () => {
+      close(null);
     });
+
     confirmBtn.addEventListener("click", () => {
       // Check required fields
       for (const field of options.fields) {
@@ -167,10 +179,8 @@ export const showInputModal = (
       inputs.forEach((input, name) => {
         result[name] = input.value;
       });
-      overlay.remove();
-      resolve(result);
+      close(result);
     });
-    actions.appendChild(confirmBtn);
 
     modal.appendChild(actions);
     overlay.appendChild(modal);
@@ -185,26 +195,9 @@ export const showInputModal = (
     // Close on overlay click
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) {
-        overlay.remove();
-        resolve(null);
+        close(null);
       }
     });
-
-    // Close on Escape key
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        overlay.remove();
-        resolve(null);
-        document.removeEventListener("keydown", handleKeydown);
-      } else if (e.key === "Enter" && !e.shiftKey) {
-        // Submit on Enter (unless in textarea with shift)
-        const activeElement = document.activeElement;
-        if (activeElement?.tagName !== "TEXTAREA") {
-          confirmBtn.click();
-        }
-      }
-    };
-    document.addEventListener("keydown", handleKeydown);
   });
 };
 
@@ -281,14 +274,28 @@ export const showConfirmModal = (
     const actions = document.createElement("div");
     actions.className = "saml-modal-actions";
 
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        close(false);
+      } else if (e.key === "Enter") {
+        confirmBtn.click();
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
+
+    const close = (result: boolean) => {
+      overlay.remove();
+      document.removeEventListener("keydown", handleKeydown);
+      resolve(result);
+    };
+
     const cancelBtn = caido.ui.button({
       label: options?.cancelLabel || "Cancel",
       variant: "tertiary",
       size: "small",
     });
     cancelBtn.addEventListener("click", () => {
-      overlay.remove();
-      resolve(false);
+      close(false);
     });
     actions.appendChild(cancelBtn);
 
@@ -298,8 +305,7 @@ export const showConfirmModal = (
       size: "small",
     });
     confirmBtn.addEventListener("click", () => {
-      overlay.remove();
-      resolve(true);
+      close(true);
     });
     actions.appendChild(confirmBtn);
 
@@ -313,21 +319,8 @@ export const showConfirmModal = (
     // Close on overlay click
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) {
-        overlay.remove();
-        resolve(false);
+        close(false);
       }
     });
-
-    // Handle keyboard
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        overlay.remove();
-        resolve(false);
-        document.removeEventListener("keydown", handleKeydown);
-      } else if (e.key === "Enter") {
-        confirmBtn.click();
-      }
-    };
-    document.addEventListener("keydown", handleKeydown);
   });
 };

@@ -48,6 +48,7 @@ export const createInformationTableComponent = (
       flex: 1;
       overflow-y: auto;
       min-height: 0;
+      padding-bottom: 48px;
     }
 
     .information-table-view {
