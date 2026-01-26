@@ -158,9 +158,9 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     }
     .saml-table-header {
       padding: 8px 12px;
-      background: var(--color-primary);
-      color: #fff;
-      border-bottom: 1px solid var(--color-primary);
+      background: linear-gradient(135deg, #2d5a7b 0%, #1a3a4f 100%);
+      color: #e0f0ff;
+      border-bottom: 1px solid #3d7aab;
       font-weight: 600;
       font-size: 12px;
       display: flex;
@@ -183,9 +183,9 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       display: none;
     }
     .saml-splitter {
-      height: 8px;
+      height: 12px;
       cursor: row-resize;
-      background: var(--bg-secondary);
+      background: linear-gradient(to bottom, var(--bg-secondary), var(--border-primary), var(--bg-secondary));
       border: 1px solid var(--border-primary);
       border-left: none;
       border-right: none;
@@ -198,14 +198,17 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       flex-shrink: 0;
     }
     .saml-splitter:hover {
-      background: var(--border-primary);
+      background: linear-gradient(to bottom, var(--border-primary), var(--text-secondary), var(--border-primary));
+    }
+    .saml-splitter::before {
+      content: "⋮⋮⋮";
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-secondary);
+      transform: rotate(90deg);
     }
     .saml-splitter::after {
-      content: "";
-      width: 30px;
-      height: 2px;
-      background: var(--text-secondary);
-      border-radius: 1px;
+      display: none;
     }
     .saml-splitter-toggle {
       position: absolute;
@@ -284,6 +287,11 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       border: 1px solid #ffd700;
       border-radius: 2px;
       margin: -1px;
+    }
+    .saml-tag-match {
+      background-color: rgba(255, 215, 0, 0.3);
+      border-bottom: 2px solid #ffd700;
+      border-radius: 2px;
     }
     
     .saml-editor-toolbar {
@@ -860,60 +868,150 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     redoBtn.disabled = historyIndex >= history.length - 1;
   };
 
-  // Bracket matching state
-  let bracketMatchPositions: { open: number; close: number } | null = null;
+  // Tag matching state - stores ranges for opening and closing tags
+  let tagMatchRanges: { openStart: number; openEnd: number; closeStart: number; closeEnd: number } | null = null;
 
   /**
-   * Find matching angle bracket for XML tags
-   * Returns positions of both brackets if cursor is on < or >
+   * Find the tag at a given cursor position
+   * Returns tag info: { start, end, name, isClosing, isSelfClosing }
    */
-  const findMatchingBracket = (text: string, cursorPos: number): { open: number; close: number } | null => {
-    const charAtCursor = text[cursorPos];
-    const charBefore = cursorPos > 0 ? text[cursorPos - 1] : "";
-
-    // Check if cursor is on or after a bracket
-    let bracketPos = -1;
-    let bracketChar = "";
-
-    if (charAtCursor === "<") {
-      bracketPos = cursorPos;
-      bracketChar = "<";
-    } else if (charAtCursor === ">") {
-      bracketPos = cursorPos;
-      bracketChar = ">";
-    } else if (charBefore === "<") {
-      bracketPos = cursorPos - 1;
-      bracketChar = "<";
-    } else if (charBefore === ">") {
-      bracketPos = cursorPos - 1;
-      bracketChar = ">";
-    }
-
-    if (bracketPos === -1) return null;
-
-    if (bracketChar === "<") {
-      // Find matching >
-      let depth = 0;
-      for (let i = bracketPos; i < text.length; i++) {
-        if (text[i] === "<") depth++;
-        else if (text[i] === ">") {
-          depth--;
-          if (depth === 0) {
-            return { open: bracketPos, close: i };
-          }
-        }
+  const getTagAtPosition = (text: string, pos: number): { start: number; end: number; name: string; isClosing: boolean; isSelfClosing: boolean } | null => {
+    // Find the start of the tag (look backwards for <)
+    let tagStart = -1;
+    for (let i = pos; i >= 0; i--) {
+      if (text[i] === "<") {
+        tagStart = i;
+        break;
       }
-    } else if (bracketChar === ">") {
-      // Find matching <
-      let depth = 0;
-      for (let i = bracketPos; i >= 0; i--) {
-        if (text[i] === ">") depth++;
-        else if (text[i] === "<") {
-          depth--;
-          if (depth === 0) {
-            return { open: i, close: bracketPos };
+      if (text[i] === ">") {
+        // We're outside a tag, check if cursor is right after >
+        if (i === pos || i === pos - 1) {
+          // Find the start of this tag
+          for (let j = i - 1; j >= 0; j--) {
+            if (text[j] === "<") {
+              tagStart = j;
+              break;
+            }
+          }
+          if (tagStart !== -1) break;
+        }
+        return null;
+      }
+    }
+    if (tagStart === -1) return null;
+
+    // Find the end of the tag (look forward for >)
+    let tagEnd = -1;
+    for (let i = tagStart; i < text.length; i++) {
+      if (text[i] === ">") {
+        tagEnd = i;
+        break;
+      }
+    }
+    if (tagEnd === -1) return null;
+
+    // Check if cursor is within this tag's range
+    if (pos < tagStart || pos > tagEnd + 1) return null;
+
+    const tagContent = text.substring(tagStart + 1, tagEnd);
+    const isClosing = tagContent.startsWith("/");
+    const isSelfClosing = tagContent.endsWith("/");
+    
+    // Extract tag name
+    const nameMatch = tagContent.match(/^\/?([a-zA-Z0-9:-]+)/);
+    if (!nameMatch) return null;
+    
+    return {
+      start: tagStart,
+      end: tagEnd,
+      name: nameMatch[1],
+      isClosing,
+      isSelfClosing
+    };
+  };
+
+  /**
+   * Find matching opening/closing tag
+   */
+  const findMatchingTag = (text: string, cursorPos: number): { openStart: number; openEnd: number; closeStart: number; closeEnd: number } | null => {
+    const tag = getTagAtPosition(text, cursorPos);
+    if (!tag || tag.isSelfClosing) return null;
+
+    const tagName = tag.name;
+
+    if (tag.isClosing) {
+      // Find matching opening tag (search backwards)
+      let depth = 1;
+      let i = tag.start - 1;
+      while (i >= 0) {
+        if (text[i] === ">") {
+          // Find the start of this tag
+          let tStart = -1;
+          for (let j = i - 1; j >= 0; j--) {
+            if (text[j] === "<") {
+              tStart = j;
+              break;
+            }
+          }
+          if (tStart !== -1) {
+            const content = text.substring(tStart + 1, i);
+            const match = content.match(/^\/?([a-zA-Z0-9:-]+)/);
+            if (match && match[1] === tagName) {
+              const isClose = content.startsWith("/");
+              const isSelf = content.endsWith("/");
+              if (!isSelf) {
+                if (isClose) {
+                  depth++;
+                } else {
+                  depth--;
+                  if (depth === 0) {
+                    return { openStart: tStart, openEnd: i, closeStart: tag.start, closeEnd: tag.end };
+                  }
+                }
+              }
+            }
+            i = tStart - 1;
+            continue;
           }
         }
+        i--;
+      }
+    } else {
+      // Find matching closing tag (search forwards)
+      let depth = 1;
+      let i = tag.end + 1;
+      while (i < text.length) {
+        if (text[i] === "<") {
+          // Find the end of this tag
+          let tEnd = -1;
+          for (let j = i + 1; j < text.length; j++) {
+            if (text[j] === ">") {
+              tEnd = j;
+              break;
+            }
+          }
+          if (tEnd !== -1) {
+            const content = text.substring(i + 1, tEnd);
+            const match = content.match(/^\/?([a-zA-Z0-9:-]+)/);
+            if (match && match[1] === tagName) {
+              const isClose = content.startsWith("/");
+              const isSelf = content.endsWith("/");
+              if (!isSelf) {
+                if (isClose) {
+                  depth--;
+                  if (depth === 0) {
+                    return { openStart: tag.start, openEnd: tag.end, closeStart: i, closeEnd: tEnd };
+                  }
+                } else {
+                  depth++;
+                }
+              }
+            }
+            i = tEnd + 1;
+            continue;
+          }
+        }
+        i++;
       }
     }
 
@@ -921,34 +1019,48 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   };
 
   /**
-   * Update bracket matching based on cursor position
+   * Update tag matching based on cursor position
    */
-  const updateBracketMatch = () => {
+  const updateTagMatch = () => {
     const cursorPos = editor.selectionStart;
-    bracketMatchPositions = findMatchingBracket(editor.value, cursorPos);
+    tagMatchRanges = findMatchingTag(editor.value, cursorPos);
     updateHighlight();
   };
 
   updateHighlight = () => {
     const rawText = editor.value;
     
-    // Build the highlighted text with bracket matching
+    // Helper to escape HTML characters
+    const escapeHtml = (text: string) => {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    };
+    
+    // Build the highlighted text with tag matching
     let result = "";
     let i = 0;
     
     while (i < rawText.length) {
+      // Check if we're at the start of a matched tag
+      if (tagMatchRanges && i === tagMatchRanges.openStart) {
+        const tagText = rawText.substring(tagMatchRanges.openStart, tagMatchRanges.openEnd + 1);
+        result += `<span class="saml-tag-match">${escapeHtml(tagText)}</span>`;
+        i = tagMatchRanges.openEnd + 1;
+        continue;
+      }
+      if (tagMatchRanges && i === tagMatchRanges.closeStart) {
+        const tagText = rawText.substring(tagMatchRanges.closeStart, tagMatchRanges.closeEnd + 1);
+        result += `<span class="saml-tag-match">${escapeHtml(tagText)}</span>`;
+        i = tagMatchRanges.closeEnd + 1;
+        continue;
+      }
+      
+      // Normal character
       const char = rawText[i];
       const escapedChar = char === "&" ? "&amp;" : char === "<" ? "&lt;" : char === ">" ? "&gt;" : char;
-      
-      // Check if this position is a matched bracket
-      const isOpenBracket = bracketMatchPositions && i === bracketMatchPositions.open;
-      const isCloseBracket = bracketMatchPositions && i === bracketMatchPositions.close;
-      
-      if (isOpenBracket || isCloseBracket) {
-        result += `<span class="saml-bracket-match">${escapedChar}</span>`;
-      } else {
-        result += escapedChar;
-      }
+      result += escapedChar;
       i++;
     }
     
@@ -979,18 +1091,18 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     editor.scrollLeft = highlight.scrollLeft;
   });
 
-  // Bracket matching on cursor position change
-  editor.addEventListener("click", updateBracketMatch);
+  // Tag matching on cursor position change
+  editor.addEventListener("click", updateTagMatch);
   editor.addEventListener("keyup", (e: KeyboardEvent) => {
     // Update on arrow keys, home, end, etc.
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(e.key)) {
-      updateBracketMatch();
+      updateTagMatch();
     }
   });
-  editor.addEventListener("focus", updateBracketMatch);
+  editor.addEventListener("focus", updateTagMatch);
   editor.addEventListener("blur", () => {
-    // Clear bracket match when editor loses focus
-    bracketMatchPositions = null;
+    // Clear tag match when editor loses focus
+    tagMatchRanges = null;
     updateHighlight();
   });
 
@@ -1101,11 +1213,16 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
 
   applyWrap();
 
+  let dragStartedCollapsed = false;
+  const COLLAPSE_THRESHOLD = 60;
+  const DEFAULT_EXPANDED_HEIGHT = 200;
+
   splitter.addEventListener("mousedown", (e) => {
-    if (tableContainer.classList.contains("collapsed")) return;
     isDragging = true;
+    dragStartedCollapsed = tableContainer.classList.contains("collapsed");
     startY = e.clientY;
-    startHeight = tableContainer.offsetHeight;
+    // If collapsed, use a default height for calculations
+    startHeight = dragStartedCollapsed ? 0 : tableContainer.offsetHeight;
     document.body.style.cursor = "row-resize";
     e.preventDefault();
   });
@@ -1113,20 +1230,46 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   window.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
     const deltaY = startY - e.clientY;
-    let newHeight = startHeight + deltaY;
     
-    // Bounds
-    if (newHeight < 100) newHeight = 100;
-    if (newHeight > editorPane.offsetHeight - 150) newHeight = editorPane.offsetHeight - 150;
+    if (dragStartedCollapsed) {
+      // Dragging from collapsed state - uncollapse when dragging up enough
+      if (deltaY > 30) {
+        tableContainer.classList.remove("collapsed");
+        toggle.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        localStorage.setItem(STORAGE_KEY_COLLAPSED, "false");
+        // Set to default height and continue normal dragging
+        const newHeight = Math.max(DEFAULT_EXPANDED_HEIGHT, deltaY);
+        tableContainer.style.height = `${newHeight}px`;
+        tableContainer.style.flex = "none";
+        localStorage.setItem(STORAGE_KEY_HEIGHT, newHeight.toString());
+        dragStartedCollapsed = false;
+        startY = e.clientY;
+        startHeight = newHeight;
+      }
+    } else {
+      let newHeight = startHeight + deltaY;
+      
+      // Auto-collapse when dragging below threshold
+      if (newHeight < COLLAPSE_THRESHOLD) {
+        tableContainer.classList.add("collapsed");
+        toggle.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        localStorage.setItem(STORAGE_KEY_COLLAPSED, "true");
+        return;
+      }
+      
+      // Upper bound
+      if (newHeight > editorPane.offsetHeight - 150) newHeight = editorPane.offsetHeight - 150;
 
-    tableContainer.style.height = `${newHeight}px`;
-    tableContainer.style.flex = "none";
-    localStorage.setItem(STORAGE_KEY_HEIGHT, newHeight.toString());
+      tableContainer.style.height = `${newHeight}px`;
+      tableContainer.style.flex = "none";
+      localStorage.setItem(STORAGE_KEY_HEIGHT, newHeight.toString());
+    }
   });
 
   window.addEventListener("mouseup", () => {
     if (isDragging) {
       isDragging = false;
+      dragStartedCollapsed = false;
       document.body.style.cursor = "";
     }
   });
