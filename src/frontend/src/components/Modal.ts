@@ -42,20 +42,22 @@ export const showInputModal = (
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(0, 0, 0, 0.85);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
+        backdrop-filter: blur(2px);
       }
       .saml-modal {
-        background: var(--bg-secondary);
+        background: var(--bg-secondary, #1e1e1e);
         border: 1px solid var(--border-primary);
         border-radius: 8px;
         padding: 20px;
         min-width: 400px;
         max-width: 600px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        opacity: 1 !important;
       }
       .saml-modal-title {
         font-size: 16px;
@@ -140,6 +142,13 @@ export const showInputModal = (
       variant: "tertiary",
       size: "small",
     });
+
+    const confirmBtn = caido.ui.button({
+      label: options.confirmLabel || "Confirm",
+      variant: "primary",
+      size: "small",
+    });
+
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         close(null);
@@ -182,6 +191,8 @@ export const showInputModal = (
       close(result);
     });
 
+    actions.appendChild(cancelBtn);
+    actions.appendChild(confirmBtn);
     modal.appendChild(actions);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
@@ -225,20 +236,22 @@ export const showConfirmModal = (
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(0, 0, 0, 0.85);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
+        backdrop-filter: blur(2px);
       }
       .saml-modal {
-        background: var(--bg-secondary);
+        background: var(--bg-secondary, #1e1e1e);
         border: 1px solid var(--border-primary);
         border-radius: 8px;
         padding: 20px;
         min-width: 300px;
         max-width: 400px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        opacity: 1 !important;
       }
       .saml-modal-title {
         font-size: 16px;

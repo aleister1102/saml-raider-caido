@@ -14,7 +14,7 @@ export const init = (caido: Caido<SAMLBackendAPI>) => {
   });
 
   caido.sidebar.registerItem("SAML Raider", SIDEBAR_PATH, {
-    icon: "fas fa-mask",
+    icon: "fas fa-id-card",
     group: "Plugins",
   });
 

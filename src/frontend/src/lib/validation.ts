@@ -16,6 +16,67 @@ export interface ValidationResult {
 
 export class ValidationEngine {
   /**
+   * Check for non-whitespace content after the root element closes
+   */
+  static checkTrailingContent(xml: string): ValidationError | null {
+    // Find the last closing tag
+    const lastCloseTagMatch = xml.match(/<\/[a-zA-Z0-9:-]+>\s*$/);
+    if (!lastCloseTagMatch) {
+      // No closing tag at end - might be self-closing or invalid
+      const selfClosingMatch = xml.match(/\/>\s*$/);
+      if (!selfClosingMatch) {
+        return {
+          line: 1,
+          column: 1,
+          message: "XML document does not end with a valid closing tag",
+          severity: "error",
+        };
+      }
+      return null;
+    }
+
+    // Check if there's any non-whitespace content after the expected root end
+    // Find the root element name
+    const rootMatch = xml.match(/<([a-zA-Z][a-zA-Z0-9:-]*)/);
+    if (!rootMatch) {
+      return null;
+    }
+    const rootName = rootMatch[1];
+
+    // Find the last occurrence of the closing root tag
+    const closeRootPattern = new RegExp(`</${rootName}>`, "g");
+    let lastCloseIndex = -1;
+    let match;
+    while ((match = closeRootPattern.exec(xml)) !== null) {
+      lastCloseIndex = match.index + match[0].length;
+    }
+
+    if (lastCloseIndex === -1) {
+      return null; // Let DOMParser handle this
+    }
+
+    // Check for non-whitespace content after the closing root tag
+    const trailingContent = xml.substring(lastCloseIndex);
+    const nonWhitespace = trailingContent.match(/\S/);
+    if (nonWhitespace) {
+      // Calculate line and column of the trailing content
+      const beforeTrailing = xml.substring(0, lastCloseIndex + (nonWhitespace.index || 0));
+      const lines = beforeTrailing.split("\n");
+      const line = lines.length;
+      const column = lines[lines.length - 1].length + 1;
+
+      return {
+        line,
+        column,
+        message: `Unexpected content after closing </${rootName}> tag`,
+        severity: "error",
+      };
+    }
+
+    return null;
+  }
+
+  /**
    * Check if XML is well-formed using DOMParser
    */
   static checkWellFormed(xml: string): ValidationError[] {
@@ -56,6 +117,12 @@ export class ValidationEngine {
             message: errorText,
             severity: "error",
           });
+        } else {
+          // DOMParser may be lenient - check for trailing content after root element
+          const trailingContentError = this.checkTrailingContent(xml);
+          if (trailingContentError) {
+            errors.push(trailingContentError);
+          }
         }
       } else {
         // Fallback: basic XML validation using regex patterns

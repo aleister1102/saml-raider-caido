@@ -15,71 +15,60 @@ export const createInformationTableComponent = (
       flex-direction: column;
       gap: 10px;
       height: 100%;
+      min-height: 0;
       box-sizing: border-box;
-    }
-
-    .information-table-tabs {
-      display: flex;
-      gap: 8px;
-      border-bottom: 1px solid var(--border-primary);
-    }
-
-    .information-table-tab {
-      padding: 8px 16px;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-size: 13px;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-
-    .information-table-tab:hover {
-      color: var(--text-primary);
-    }
-
-    .information-table-tab.active {
-      color: var(--text-primary);
-      border-bottom-color: var(--color-primary);
+      overflow: hidden;
+      --info-border: var(--border-secondary, var(--border-primary));
+      --info-row-alt: var(--bg-tertiary, var(--bg-secondary));
     }
 
     .information-table-content {
       flex: 1;
       overflow-y: auto;
       min-height: 0;
-      padding-bottom: 48px;
-    }
-
-    .information-table-view {
-      display: none;
-    }
-
-    .information-table-view.active {
-      display: block;
+      user-select: text;
     }
 
     .information-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
+      border: 1px solid var(--info-border);
+      background: var(--bg-primary);
+      table-layout: fixed;
+    }
+
+    .information-table th:first-child,
+    .information-table td:first-child {
+      width: 150px;
     }
 
     .information-table th {
       background: var(--bg-secondary);
       color: var(--text-primary);
-      padding: 8px;
+      padding: 8px 12px;
       text-align: left;
       font-weight: 600;
-      border-bottom: 1px solid var(--border-primary);
-      position: sticky;
-      top: 0;
+      border-bottom: 1px solid var(--info-border);
     }
 
     .information-table td {
-      padding: 8px;
-      border-bottom: 1px solid var(--border-primary);
-      word-break: break-word;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--info-border);
+      word-break: break-all;
+    }
+
+    .information-table th,
+    .information-table td {
+      border: 1px solid var(--info-border);
+    }
+
+    .information-table tbody tr:nth-child(even) {
+      background: var(--info-row-alt);
+    }
+
+    .information-table tr:last-child td {
+      border-bottom: none;
     }
 
     .information-table tr:hover {
@@ -87,34 +76,46 @@ export const createInformationTableComponent = (
     }
 
     .information-table-section {
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      border: 1px solid var(--info-border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--bg-primary);
     }
 
     .information-table-section-title {
       font-weight: 600;
       color: var(--text-primary);
-      padding: 8px;
+      padding: 8px 12px;
       background: var(--bg-secondary);
-      border-left: 3px solid var(--color-primary);
-      margin-bottom: 8px;
+      border-bottom: 1px solid var(--info-border);
+      font-size: 12px;
     }
 
     .information-table-row {
       display: flex;
-      gap: 16px;
-      padding: 8px;
-      border-bottom: 1px solid var(--border-primary);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--info-border);
+      font-size: 12px;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .information-table-row:last-child {
+      border-bottom: none;
     }
 
     .information-table-label {
       font-weight: 600;
       color: var(--text-secondary);
-      min-width: 120px;
+      width: 150px;
+      min-width: 150px;
+      flex-shrink: 0;
     }
 
     .information-table-value {
       color: var(--text-primary);
-      word-break: break-word;
+      word-break: break-all;
       flex: 1;
     }
 
@@ -144,31 +145,10 @@ export const createInformationTableComponent = (
   `;
   container.appendChild(style);
 
-  // Tab buttons
-  const tabsContainer = document.createElement("div");
-  tabsContainer.className = "information-table-tabs";
-  container.appendChild(tabsContainer);
-
-  const xmlTabBtn = document.createElement("button");
-  xmlTabBtn.className = "information-table-tab active";
-  xmlTabBtn.textContent = "XML View";
-  tabsContainer.appendChild(xmlTabBtn);
-
-  const tableTabBtn = document.createElement("button");
-  tableTabBtn.className = "information-table-tab";
-  tableTabBtn.textContent = "Table View";
-  tabsContainer.appendChild(tableTabBtn);
-
   // Content area
   const contentArea = document.createElement("div");
   contentArea.className = "information-table-content";
   container.appendChild(contentArea);
-
-  // XML View (placeholder - will be replaced by actual editor)
-  const xmlView = document.createElement("div");
-  xmlView.className = "information-table-view active";
-  xmlView.innerHTML = "<p style='padding: 16px; color: var(--text-secondary);'>XML view is shown in the editor above</p>";
-  contentArea.appendChild(xmlView);
 
   // Table View
   const tableView = document.createElement("div");
@@ -182,22 +162,34 @@ export const createInformationTableComponent = (
     tableView.innerHTML = "";
 
     // Issuer section
-    if (info.issuer) {
+    if (info.issuerResponse || info.issuerAssertion) {
       const section = document.createElement("div");
       section.className = "information-table-section";
       
       const title = document.createElement("div");
       title.className = "information-table-section-title";
-      title.textContent = "Issuer";
+      title.textContent = "Issuers";
       section.appendChild(title);
 
-      const row = document.createElement("div");
-      row.className = "information-table-row";
-      row.innerHTML = `
-        <div class="information-table-label">Issuer:</div>
-        <div class="information-table-value">${escapeHtml(info.issuer)}</div>
-      `;
-      section.appendChild(row);
+      if (info.issuerResponse) {
+        const row = document.createElement("div");
+        row.className = "information-table-row";
+        row.innerHTML = `
+          <div class="information-table-label">Response Issuer:</div>
+          <div class="information-table-value">${escapeHtml(info.issuerResponse)}</div>
+        `;
+        section.appendChild(row);
+      }
+
+      if (info.issuerAssertion) {
+        const row = document.createElement("div");
+        row.className = "information-table-row";
+        row.innerHTML = `
+          <div class="information-table-label">Assertion Issuer:</div>
+          <div class="information-table-value">${escapeHtml(info.issuerAssertion)}</div>
+        `;
+        section.appendChild(row);
+      }
       tableView.appendChild(section);
     }
 
@@ -285,12 +277,12 @@ export const createInformationTableComponent = (
       if (info.conditions.audiences.length > 0) {
         const row = document.createElement("div");
         row.className = "information-table-row";
-        const audienceBadges = info.conditions.audiences
-          .map(a => `<span class="information-table-badge">${escapeHtml(a)}</span>`)
-          .join("");
+        const audienceList = info.conditions.audiences
+          .map(a => escapeHtml(a))
+          .join(", ");
         row.innerHTML = `
           <div class="information-table-label">Audiences:</div>
-          <div class="information-table-value">${audienceBadges}</div>
+          <div class="information-table-value">${audienceList}</div>
         `;
         section.appendChild(row);
       }
@@ -376,28 +368,13 @@ export const createInformationTableComponent = (
     renderTable(info);
   };
 
-  // Tab switching
-  xmlTabBtn.addEventListener("click", () => {
-    xmlTabBtn.classList.add("active");
-    tableTabBtn.classList.remove("active");
-    xmlView.classList.add("active");
-    tableView.classList.remove("active");
-  });
-
-  tableTabBtn.addEventListener("click", () => {
-    tableTabBtn.classList.add("active");
-    xmlTabBtn.classList.remove("active");
-    tableView.classList.add("active");
-    xmlView.classList.remove("active");
+  // Update table when editor changes
+  editor.addEventListener("input", () => {
     updateTableView();
   });
 
-  // Update table when editor changes
-  editor.addEventListener("input", () => {
-    if (tableTabBtn.classList.contains("active")) {
-      updateTableView();
-    }
-  });
+  // Initial render
+  updateTableView();
 
   return {
     element: container,

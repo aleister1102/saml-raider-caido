@@ -32,7 +32,7 @@ export const createSearchReplaceComponent = (
       gap: 8px;
       padding: 8px;
       background: var(--bg-secondary);
-      border: 1px solid var(--border-primary);
+      border: 1px solid var(--border-secondary, var(--border-primary));
       border-radius: 4px;
     }
     .search-replace-row {
@@ -45,7 +45,8 @@ export const createSearchReplaceComponent = (
       padding: 6px 8px;
       background: var(--bg-primary);
       color: var(--text-primary);
-      border: 1px solid var(--border-primary);
+      border: 1px solid var(--border-secondary, var(--border-primary));
+      box-shadow: none;
       border-radius: 4px;
       font-family: monospace;
       font-size: 12px;
@@ -64,14 +65,16 @@ export const createSearchReplaceComponent = (
       min-width: 60px;
       text-align: center;
     }
-    .search-replace-toggle {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
+    .search-case-toggle {
+      background: var(--bg-tertiary, var(--bg-secondary)) !important;
+      color: var(--text-secondary) !important;
+      border: 1px solid var(--border-primary) !important;
+      font-weight: 600 !important;
     }
-    .search-replace-toggle input {
-      cursor: pointer;
+    .search-case-toggle.active {
+      background: var(--color-primary) !important;
+      color: #fff !important;
+      border-color: var(--color-primary) !important;
     }
     .search-highlight {
       background-color: #ffd700;
@@ -112,6 +115,16 @@ export const createSearchReplaceComponent = (
   matchCount.textContent = "0 matches";
   searchControls.appendChild(matchCount);
 
+  const caseToggleBtn = caido.ui.button({
+    label: "Aa",
+    variant: "tertiary",
+    size: "small",
+  });
+  caseToggleBtn.classList.add("search-case-toggle");
+  caseToggleBtn.setAttribute("aria-pressed", "false");
+  caseToggleBtn.setAttribute("title", "Case sensitive: Off");
+  searchControls.appendChild(caseToggleBtn);
+
   const prevBtn = caido.ui.button({
     label: "◀",
     variant: "tertiary",
@@ -125,17 +138,6 @@ export const createSearchReplaceComponent = (
     size: "small",
   });
   searchControls.appendChild(nextBtn);
-
-  const caseToggle = document.createElement("label");
-  caseToggle.className = "search-replace-toggle";
-  const caseCheckbox = document.createElement("input");
-  caseCheckbox.type = "checkbox";
-  caseCheckbox.checked = false;
-  caseToggle.appendChild(caseCheckbox);
-  const caseLabel = document.createElement("span");
-  caseLabel.textContent = "Aa";
-  caseToggle.appendChild(caseLabel);
-  searchControls.appendChild(caseToggle);
 
   // Second row: Replace input and buttons
   const replaceRow = document.createElement("div");
@@ -267,12 +269,8 @@ export const createSearchReplaceComponent = (
     }
   };
 
-  /**
-   * Update search state and highlights
-   */
   const updateSearch = () => {
     state.query = searchInput.value;
-    state.caseSensitive = caseCheckbox.checked;
     state.matches = findMatches();
     state.currentIndex = state.matches.length > 0 ? 0 : -1;
 
@@ -296,11 +294,13 @@ export const createSearchReplaceComponent = (
     const beforeMatch = text.substring(0, match.start);
     const lines = beforeMatch.split("\n");
     const lineNumber = lines.length - 1;
-    const lineHeight = parseInt(window.getComputedStyle(editor).lineHeight);
+    const lineHeight = parseInt(window.getComputedStyle(editor).lineHeight || "16", 10) || 16;
+    const viewHeight = editor.clientHeight || 0;
+    const targetTop = lineNumber * lineHeight;
+    const desiredTop = Math.max(0, targetTop - Math.max(0, (viewHeight / 2) - lineHeight));
 
-    // Scroll to line
-    editor.scrollTop = lineNumber * lineHeight;
-    highlight.scrollTop = editor.scrollTop;
+    editor.scrollTop = desiredTop;
+    highlight.scrollTop = desiredTop;
   };
 
   /**
@@ -370,18 +370,42 @@ export const createSearchReplaceComponent = (
     }
   };
 
+  const updateCaseToggle = () => {
+    caseToggleBtn.classList.toggle("active", state.caseSensitive);
+    caseToggleBtn.setAttribute("aria-pressed", state.caseSensitive.toString());
+    caseToggleBtn.setAttribute(
+      "title",
+      state.caseSensitive ? "Case sensitive: On" : "Case sensitive: Off"
+    );
+  };
+
   // Event listeners
   searchInput.addEventListener("input", updateSearch);
-  caseCheckbox.addEventListener("change", updateSearch);
   nextBtn.addEventListener("click", nextMatch);
   prevBtn.addEventListener("click", prevMatch);
   replaceBtn.addEventListener("click", replaceCurrent);
   replaceAllBtn.addEventListener("click", replaceAll);
+  caseToggleBtn.onclick = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    state.caseSensitive = !state.caseSensitive;
+    updateCaseToggle();
+    updateSearch();
+  };
+
+  updateCaseToggle();
 
   return {
     element: container,
     updateHighlights,
     getState: () => state,
     focusSearch: () => searchInput.focus(),
+    toggleCaseSensitive: () => {
+      state.caseSensitive = !state.caseSensitive;
+      updateCaseToggle();
+      updateSearch();
+      return state.caseSensitive;
+    },
+    isCaseSensitive: () => state.caseSensitive,
   };
 };

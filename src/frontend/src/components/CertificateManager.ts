@@ -28,6 +28,14 @@ export const createCertificateManager = (caido: Caido<SAMLBackendAPI>) => {
       gap: 10px;
       margin-bottom: 20px;
     }
+    .cert-btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed !important;
+      pointer-events: none;
+    }
+    .cert-btn-disabled button {
+      cursor: not-allowed !important;
+    }
   `;
   container.appendChild(style);
 
@@ -88,36 +96,8 @@ export const createCertificateManager = (caido: Caido<SAMLBackendAPI>) => {
     variant: "secondary",
     size: "small",
   });
-  createBtn.addEventListener("click", async () => {
-    const result = await showInputModal(caido, {
-      title: "Create New Certificate",
-      fields: [
-        {
-          name: "subject",
-          label: "Common Name",
-          type: "text",
-          placeholder: "example.com",
-          required: true,
-        },
-      ],
-      confirmLabel: "Create",
-    });
-    
-    if (result?.subject) {
-      try {
-        const response = await caido.backend.createCertificate(result.subject);
-        if (response.success) {
-          refresh();
-          caido.window.showToast("Certificate created.", { variant: "success" });
-        } else {
-          const errorMsg = response.error?.message || "Unknown error";
-          caido.window.showToast("Creation failed: " + errorMsg, { variant: "error" });
-        }
-      } catch (err) {
-        caido.window.showToast("Creation failed: " + err, { variant: "error" });
-      }
-    }
-  });
+  createBtn.classList.add("cert-btn-disabled");
+  createBtn.title = "Not available: Requires cryptographic libraries not supported in Caido runtime";
   actions.appendChild(createBtn);
 
   const tableContainer = document.createElement("div");
@@ -160,19 +140,10 @@ export const createCertificateManager = (caido: Caido<SAMLBackendAPI>) => {
       `;
       
       const rowActions = tr.querySelector(".row-actions")!;
-      
+
       const cloneBtn = caido.ui.button({ label: "Clone", variant: "tertiary", size: "small" });
-      cloneBtn.addEventListener("click", () => {
-        caido.backend.cloneCertificate(cert.id).then((response) => {
-          if (response.success) {
-            refresh();
-            caido.window.showToast("Certificate cloned.", { variant: "success" });
-          } else {
-            const errorMsg = response.error?.message || "Unknown error";
-            caido.window.showToast("Clone failed: " + errorMsg, { variant: "error" });
-          }
-        });
-      });
+      cloneBtn.classList.add("cert-btn-disabled");
+      cloneBtn.title = "Not available: Requires cryptographic libraries not supported in Caido runtime";
       rowActions.appendChild(cloneBtn);
 
       const deleteBtn = caido.ui.button({ label: "Delete", variant: "tertiary", size: "small" });

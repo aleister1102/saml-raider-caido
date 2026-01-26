@@ -83,23 +83,148 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       flex: 1;
       min-height: 0;
     }
+    .saml-editor-pane {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+    }
     .saml-editor-container {
       display: flex;
       flex-direction: column;
       gap: 10px;
       position: relative;
+      flex: 1;
+      min-height: 100px;
+      overflow: hidden;
     }
     .saml-editor-wrapper {
       flex: 1;
       position: relative;
       min-height: 0;
+      overflow: hidden;
+    }
+    .saml-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .saml-toolbar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .saml-toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .saml-toolbar-center {
+      flex: 1;
+      justify-content: center;
+    }
+    .saml-toolbar-right {
+      margin-left: auto;
+      gap: 8px;
+    }
+    .saml-controls-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .saml-toggle-button {
+      background: var(--bg-secondary) !important;
+      color: var(--text-secondary) !important;
+      border: 1px solid var(--border-primary) !important;
+    }
+    .saml-toggle-button.active {
+      background: var(--color-primary) !important;
+      color: #fff !important;
+      border-color: var(--color-primary) !important;
+    }
+    .saml-controls-bottom > .search-replace-container {
+      width: 100%;
     }
     .saml-table-container {
-      flex: 1;
       min-height: 0;
       border: 1px solid var(--border-primary);
       border-radius: 4px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .saml-table-header {
+      padding: 8px 12px;
+      background: var(--color-primary);
+      color: #fff;
+      border-bottom: 1px solid var(--color-primary);
+      font-weight: 600;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .saml-table-body {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .saml-table-container.collapsed {
+      height: 33px !important;
+      flex: none !important;
+    }
+    .saml-table-container.collapsed .saml-table-body {
+      display: none;
+    }
+    .saml-splitter {
+      height: 8px;
+      cursor: row-resize;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-left: none;
+      border-right: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .saml-splitter:hover {
+      background: var(--border-primary);
+    }
+    .saml-splitter::after {
+      content: "";
+      width: 30px;
+      height: 2px;
+      background: var(--text-secondary);
+      border-radius: 1px;
+    }
+    .saml-splitter-toggle {
+      position: absolute;
+      right: 10px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--text-secondary);
+      transition: transform 0.3s;
+    }
+    .saml-splitter-toggle:hover {
+      color: var(--text-primary);
+    }
+    .saml-table-container.collapsed ~ .saml-splitter .saml-splitter-toggle {
+      transform: rotate(180deg);
     }
     .saml-editor, .saml-highlight {
       position: absolute;
@@ -128,6 +253,11 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       resize: none;
       -webkit-text-fill-color: transparent;
     }
+    .saml-editor.nowrap {
+      white-space: pre;
+      word-break: normal;
+      overflow-wrap: normal;
+    }
     .saml-editor:focus {
       outline: 1px solid var(--color-primary);
     }
@@ -139,10 +269,22 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       overflow-y: auto;
       overflow-x: auto;
     }
+    .saml-highlight.nowrap {
+      white-space: pre;
+      word-break: normal;
+      overflow-wrap: normal;
+      overflow-x: auto;
+    }
     .saml-hl-tag { color: #569cd6; }
     .saml-hl-attr { color: #9cdcfe; }
     .saml-hl-val { color: #ce9178; }
     .saml-hl-comment { color: #6a9955; }
+    .saml-bracket-match {
+      background-color: rgba(255, 215, 0, 0.4);
+      border: 1px solid #ffd700;
+      border-radius: 2px;
+      margin: -1px;
+    }
     
     .saml-editor-toolbar {
       display: flex;
@@ -154,6 +296,7 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       flex-direction: column;
       gap: 20px;
       overflow-y: auto;
+      min-height: 0;
     }
     .saml-card {
       padding: 15px;
@@ -167,9 +310,34 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       display: block;
     }
     .saml-button-grid {
-      display: grid;
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px;
+    }
+    .saml-button-grid > * {
+      flex-shrink: 0;
+    }
+    .saml-button-group {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .saml-button-group:last-child {
+      margin-bottom: 0;
+    }
+    .saml-button-group-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .saml-button-group-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .saml-button-group-buttons > * {
+      flex-shrink: 0;
     }
     
     /* Certificate Manager Styles */
@@ -199,11 +367,12 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     }
     .cert-panel-title {
       font-weight: bold;
-      font-size: 14px;
+      font-size: 16px;
       color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      margin-bottom: 4px;
     }
     .cert-panel-title i {
       color: var(--color-primary);
@@ -213,10 +382,10 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
     }
     .cert-item {
-      padding: 12px;
+      padding: 16px;
       background: var(--bg-primary);
       border: 1px solid var(--border-primary);
       border-radius: 6px;
@@ -231,25 +400,27 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       background: rgba(var(--color-primary-rgb), 0.1);
     }
     .cert-item-name {
+      font-size: 16px;
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .cert-item-subject {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-secondary);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .cert-item-meta {
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-secondary);
       display: flex;
       gap: 12px;
+      align-items: center;
     }
     .cert-item-badge {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 3px 8px;
       border-radius: 3px;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
     }
@@ -266,64 +437,165 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       gap: 8px;
       flex-wrap: wrap;
     }
+    .cert-btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed !important;
+      pointer-events: none;
+    }
+    .cert-btn-disabled button {
+      cursor: not-allowed !important;
+    }
     .cert-details {
       flex: 1;
       overflow-y: auto;
+      padding: 8px;
     }
     .cert-detail-row {
       display: flex;
-      padding: 8px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border-primary);
     }
     .cert-detail-row:last-child {
       border-bottom: none;
     }
     .cert-detail-label {
-      width: 120px;
+      width: 150px;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-secondary);
     }
     .cert-detail-value {
       flex: 1;
-      font-size: 12px;
+      font-size: 14px;
       word-break: break-all;
       font-family: monospace;
+      user-select: text;
+      cursor: text;
     }
     .cert-pem-container {
-      margin-top: 12px;
+      margin-top: 16px;
     }
     .cert-pem-label {
       font-weight: 600;
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-secondary);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .cert-pem-content {
       background: var(--bg-primary);
       border: 1px solid var(--border-primary);
       border-radius: 4px;
-      padding: 8px;
+      padding: 12px;
       font-family: monospace;
-      font-size: 11px;
-      max-height: 150px;
+      font-size: 13px;
+      max-height: 250px;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
+      user-select: text;
+      cursor: text;
     }
     .cert-empty {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px;
+      padding: 60px;
       text-align: center;
       color: var(--text-secondary);
+      font-size: 16px;
     }
     .cert-empty i {
-      font-size: 48px;
-      margin-bottom: 16px;
+      font-size: 64px;
+      margin-bottom: 20px;
       opacity: 0.5;
+    }
+    
+    /* Decoder Tab Styles */
+    .decoder-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+      flex: 1;
+      min-height: 0;
+    }
+    .decoder-input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .decoder-label {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .decoder-input {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      resize: vertical;
+    }
+    .decoder-input::placeholder {
+      color: var(--text-secondary);
+    }
+    .decoder-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .decoder-info {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+    .decoder-output-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+    .decoder-output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .decoder-output {
+      flex: 1;
+      min-height: 200px;
+      padding: 12px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .decoder-output.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+    }
+    .decoder-type-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(var(--color-primary-rgb), 0.2);
+      color: var(--color-primary);
     }
   `;
   container.appendChild(style);
@@ -346,6 +618,11 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   editorTab.textContent = "SAML Editor";
   tabs.appendChild(editorTab);
 
+  const decoderTab = document.createElement("button");
+  decoderTab.className = "saml-tab";
+  decoderTab.textContent = "Decoder";
+  tabs.appendChild(decoderTab);
+
   const certTab = document.createElement("button");
   certTab.className = "saml-tab";
   certTab.textContent = "Certificates";
@@ -356,44 +633,58 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   editorTabContent.className = "saml-tab-content active";
   container.appendChild(editorTabContent);
 
+  const decoderTabContent = document.createElement("div");
+  decoderTabContent.className = "saml-tab-content";
+  container.appendChild(decoderTabContent);
+
   const certTabContent = document.createElement("div");
   certTabContent.className = "saml-tab-content";
   container.appendChild(certTabContent);
 
-  // Tab switching
-  editorTab.addEventListener("click", () => {
-    editorTab.classList.add("active");
-    certTab.classList.remove("active");
-    editorTabContent.classList.add("active");
-    certTabContent.classList.remove("active");
-  });
-
-  certTab.addEventListener("click", () => {
-    certTab.classList.add("active");
+  // Helper to switch tabs
+  const switchToTab = (tabName: "editor" | "decoder" | "cert") => {
     editorTab.classList.remove("active");
-    certTabContent.classList.add("active");
+    decoderTab.classList.remove("active");
+    certTab.classList.remove("active");
     editorTabContent.classList.remove("active");
-    refreshCerts();
-  });
+    decoderTabContent.classList.remove("active");
+    certTabContent.classList.remove("active");
+    
+    if (tabName === "editor") {
+      editorTab.classList.add("active");
+      editorTabContent.classList.add("active");
+    } else if (tabName === "decoder") {
+      decoderTab.classList.add("active");
+      decoderTabContent.classList.add("active");
+    } else if (tabName === "cert") {
+      certTab.classList.add("active");
+      certTabContent.classList.add("active");
+      refreshCerts();
+    }
+  };
+
+  // Tab switching
+  editorTab.addEventListener("click", () => switchToTab("editor"));
+  decoderTab.addEventListener("click", () => switchToTab("decoder"));
+  certTab.addEventListener("click", () => switchToTab("cert"));
 
   // ========== SAML Editor Tab ==========
   const content = document.createElement("div");
   content.className = "saml-content";
   editorTabContent.appendChild(content);
 
+  const editorPane = document.createElement("div");
+  editorPane.className = "saml-editor-pane";
+  content.appendChild(editorPane);
+
   const editorContainer = document.createElement("div");
   editorContainer.className = "saml-editor-container";
-  content.appendChild(editorContainer);
-
-  const toolbar = document.createElement("div");
-  toolbar.className = "saml-editor-toolbar";
-  editorContainer.appendChild(toolbar);
+  editorPane.appendChild(editorContainer);
 
   const undoBtn = caido.ui.button({ label: "Undo", variant: "tertiary", size: "small" });
   const redoBtn = caido.ui.button({ label: "Redo", variant: "tertiary", size: "small" });
   const prettifyBtn = caido.ui.button({ label: "Prettify", variant: "tertiary", size: "small" });
   const minifyBtn = caido.ui.button({ label: "Minify", variant: "tertiary", size: "small" });
-  toolbar.append(undoBtn, redoBtn, prettifyBtn, minifyBtn);
 
   const editorWrapper = document.createElement("div");
   editorWrapper.className = "saml-editor-wrapper";
@@ -410,6 +701,36 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   editor.setAttribute("autocorrect", "off");
   editor.setAttribute("autocapitalize", "off");
   editorWrapper.appendChild(editor);
+
+  const controls = document.createElement("div");
+  controls.className = "saml-controls";
+  editorPane.appendChild(controls);
+
+  const toolbarRow = document.createElement("div");
+  toolbarRow.className = "saml-toolbar-row";
+  controls.appendChild(toolbarRow);
+
+  const leftGroup = document.createElement("div");
+  leftGroup.className = "saml-toolbar-group saml-toolbar-left";
+  leftGroup.append(prettifyBtn, minifyBtn);
+  toolbarRow.appendChild(leftGroup);
+
+  const centerGroup = document.createElement("div");
+  centerGroup.className = "saml-toolbar-group saml-toolbar-center";
+  centerGroup.append(undoBtn, redoBtn);
+  toolbarRow.appendChild(centerGroup);
+
+  const wrapToggle = caido.ui.button({ label: "Wrap", variant: "tertiary", size: "small" });
+  wrapToggle.classList.add("saml-toggle-button");
+  
+  const rightGroup = document.createElement("div");
+  rightGroup.className = "saml-toolbar-group saml-toolbar-right";
+  rightGroup.appendChild(wrapToggle);
+  toolbarRow.appendChild(rightGroup);
+
+  const controlsBottom = document.createElement("div");
+  controlsBottom.className = "saml-controls-bottom";
+  controls.appendChild(controlsBottom);
 
   // Placeholder SAML Response
   const placeholderSAML = `<?xml version="1.0"?>
@@ -539,23 +860,116 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     redoBtn.disabled = historyIndex >= history.length - 1;
   };
 
+  // Bracket matching state
+  let bracketMatchPositions: { open: number; close: number } | null = null;
+
+  /**
+   * Find matching angle bracket for XML tags
+   * Returns positions of both brackets if cursor is on < or >
+   */
+  const findMatchingBracket = (text: string, cursorPos: number): { open: number; close: number } | null => {
+    const charAtCursor = text[cursorPos];
+    const charBefore = cursorPos > 0 ? text[cursorPos - 1] : "";
+
+    // Check if cursor is on or after a bracket
+    let bracketPos = -1;
+    let bracketChar = "";
+
+    if (charAtCursor === "<") {
+      bracketPos = cursorPos;
+      bracketChar = "<";
+    } else if (charAtCursor === ">") {
+      bracketPos = cursorPos;
+      bracketChar = ">";
+    } else if (charBefore === "<") {
+      bracketPos = cursorPos - 1;
+      bracketChar = "<";
+    } else if (charBefore === ">") {
+      bracketPos = cursorPos - 1;
+      bracketChar = ">";
+    }
+
+    if (bracketPos === -1) return null;
+
+    if (bracketChar === "<") {
+      // Find matching >
+      let depth = 0;
+      for (let i = bracketPos; i < text.length; i++) {
+        if (text[i] === "<") depth++;
+        else if (text[i] === ">") {
+          depth--;
+          if (depth === 0) {
+            return { open: bracketPos, close: i };
+          }
+        }
+      }
+    } else if (bracketChar === ">") {
+      // Find matching <
+      let depth = 0;
+      for (let i = bracketPos; i >= 0; i--) {
+        if (text[i] === ">") depth++;
+        else if (text[i] === "<") {
+          depth--;
+          if (depth === 0) {
+            return { open: i, close: bracketPos };
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
+  /**
+   * Update bracket matching based on cursor position
+   */
+  const updateBracketMatch = () => {
+    const cursorPos = editor.selectionStart;
+    bracketMatchPositions = findMatchingBracket(editor.value, cursorPos);
+    updateHighlight();
+  };
+
   updateHighlight = () => {
-    let text = editor.value;
-    text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    text = text.replace(/(&lt;\/?[a-zA-Z0-9:-]+)/g, '<span class="saml-hl-tag">$1</span>');
-    text = text.replace(/([a-zA-Z0-9:-]+)(=)(&quot;.*?&quot;)/g, '<span class="saml-hl-attr">$1</span>$2<span class="saml-hl-val">$3</span>');
-    text = text.replace(/(&lt;!--.*?--&gt;)/g, '<span class="saml-hl-comment">$1</span>');
-    highlight.innerHTML = text;
+    const rawText = editor.value;
+    
+    // Build the highlighted text with bracket matching
+    let result = "";
+    let i = 0;
+    
+    while (i < rawText.length) {
+      const char = rawText[i];
+      const escapedChar = char === "&" ? "&amp;" : char === "<" ? "&lt;" : char === ">" ? "&gt;" : char;
+      
+      // Check if this position is a matched bracket
+      const isOpenBracket = bracketMatchPositions && i === bracketMatchPositions.open;
+      const isCloseBracket = bracketMatchPositions && i === bracketMatchPositions.close;
+      
+      if (isOpenBracket || isCloseBracket) {
+        result += `<span class="saml-bracket-match">${escapedChar}</span>`;
+      } else {
+        result += escapedChar;
+      }
+      i++;
+    }
+    
+    // Apply syntax highlighting
+    result = result.replace(/(&lt;\/?[a-zA-Z0-9:-]+)/g, '<span class="saml-hl-tag">$1</span>');
+    result = result.replace(/([a-zA-Z0-9:-]+)(=)(&quot;.*?&quot;)/g, '<span class="saml-hl-attr">$1</span>$2<span class="saml-hl-val">$3</span>');
+    result = result.replace(/(&lt;!--.*?--&gt;)/g, '<span class="saml-hl-comment">$1</span>');
+    
+    highlight.innerHTML = result;
   };
 
   saveToHistory(placeholderSAML);
   updateHighlight();
   updateUndoRedoButtons();
 
-  editor.addEventListener("input", () => {
+  const recordChange = () => {
     updateHighlight();
     saveToHistory(editor.value);
-  });
+  };
+
+  editor.addEventListener("input", recordChange);
   editor.addEventListener("scroll", () => {
     highlight.scrollTop = editor.scrollTop;
     highlight.scrollLeft = editor.scrollLeft;
@@ -563,6 +977,21 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   highlight.addEventListener("scroll", () => {
     editor.scrollTop = highlight.scrollTop;
     editor.scrollLeft = highlight.scrollLeft;
+  });
+
+  // Bracket matching on cursor position change
+  editor.addEventListener("click", updateBracketMatch);
+  editor.addEventListener("keyup", (e: KeyboardEvent) => {
+    // Update on arrow keys, home, end, etc.
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(e.key)) {
+      updateBracketMatch();
+    }
+  });
+  editor.addEventListener("focus", updateBracketMatch);
+  editor.addEventListener("blur", () => {
+    // Clear bracket match when editor loses focus
+    bracketMatchPositions = null;
+    updateHighlight();
   });
 
   // Keyboard shortcuts
@@ -590,18 +1019,135 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   undoBtn.addEventListener("click", undo);
   redoBtn.addEventListener("click", redo);
 
-  const searchReplace = createSearchReplaceComponent(caido, editor, highlight, updateHighlight);
-  editorContainer.appendChild(searchReplace.element);
-
+  const searchReplace = createSearchReplaceComponent(caido, editor, highlight, recordChange);
   const validationStatus = createValidationStatus(caido, editor, { debounceDelay: 500 });
-  editorContainer.appendChild(validationStatus.element);
+
+  controlsBottom.appendChild(searchReplace.element);
+  controlsBottom.appendChild(validationStatus.element);
+
+  const splitter = document.createElement("div");
+  splitter.className = "saml-splitter";
+  editorPane.appendChild(splitter);
+
+  const toggle = document.createElement("div");
+  toggle.className = "saml-splitter-toggle";
+  toggle.innerHTML = '<i class="fas fa-chevron-down"></i>';
+  splitter.appendChild(toggle);
 
   const tableContainer = document.createElement("div");
   tableContainer.className = "saml-table-container";
-  editorContainer.appendChild(tableContainer);
+  editorPane.appendChild(tableContainer);
+
+  const tableHeader = document.createElement("div");
+  tableHeader.className = "saml-table-header";
+  tableHeader.innerHTML = '<i class="fas fa-table"></i> SAML Information';
+  tableContainer.appendChild(tableHeader);
+
+  const tableBody = document.createElement("div");
+  tableBody.className = "saml-table-body";
+  tableContainer.appendChild(tableBody);
   
   const informationTable = createInformationTableComponent(caido, editor);
-  tableContainer.appendChild(informationTable.element);
+  tableBody.appendChild(informationTable.element);
+
+  // Persistence
+  const STORAGE_KEY_HEIGHT = "saml-raider-table-height";
+  const STORAGE_KEY_COLLAPSED = "saml-raider-table-collapsed";
+  const STORAGE_KEY_WRAP = "saml-raider-wrap";
+
+  let isDragging = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  const savedHeight = localStorage.getItem(STORAGE_KEY_HEIGHT);
+  const savedCollapsed = localStorage.getItem(STORAGE_KEY_COLLAPSED);
+  const savedWrap = localStorage.getItem(STORAGE_KEY_WRAP);
+
+  let wrapEnabled = savedWrap !== "false";
+
+  const applyWrap = () => {
+    if (wrapEnabled) {
+      editor.classList.remove("nowrap");
+      highlight.classList.remove("nowrap");
+      wrapToggle.classList.add("active");
+      wrapToggle.textContent = "Wrap: On";
+      wrapToggle.setAttribute("aria-pressed", "true");
+      wrapToggle.setAttribute("title", "Text wrap: On");
+    } else {
+      editor.classList.add("nowrap");
+      highlight.classList.add("nowrap");
+      wrapToggle.classList.remove("active");
+      wrapToggle.textContent = "Wrap: Off";
+      wrapToggle.setAttribute("aria-pressed", "false");
+      wrapToggle.setAttribute("title", "Text wrap: Off");
+    }
+    localStorage.setItem(STORAGE_KEY_WRAP, wrapEnabled.toString());
+  };
+
+  if (savedHeight) {
+    tableContainer.style.height = `${savedHeight}px`;
+    tableContainer.style.flex = "none";
+  } else {
+    tableContainer.style.height = "300px";
+    tableContainer.style.flex = "none";
+  }
+
+  // Default to collapsed unless explicitly set to false
+  const shouldCollapse = savedCollapsed !== "false";
+  if (shouldCollapse) {
+    tableContainer.classList.add("collapsed");
+    toggle.innerHTML = '<i class="fas fa-chevron-up"></i>';
+  }
+
+  applyWrap();
+
+  splitter.addEventListener("mousedown", (e) => {
+    if (tableContainer.classList.contains("collapsed")) return;
+    isDragging = true;
+    startY = e.clientY;
+    startHeight = tableContainer.offsetHeight;
+    document.body.style.cursor = "row-resize";
+    e.preventDefault();
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const deltaY = startY - e.clientY;
+    let newHeight = startHeight + deltaY;
+    
+    // Bounds
+    if (newHeight < 100) newHeight = 100;
+    if (newHeight > editorPane.offsetHeight - 150) newHeight = editorPane.offsetHeight - 150;
+
+    tableContainer.style.height = `${newHeight}px`;
+    tableContainer.style.flex = "none";
+    localStorage.setItem(STORAGE_KEY_HEIGHT, newHeight.toString());
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (isDragging) {
+      isDragging = false;
+      document.body.style.cursor = "";
+    }
+  });
+
+  toggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isCollapsed = tableContainer.classList.toggle("collapsed");
+    toggle.innerHTML = isCollapsed ? '<i class="fas fa-chevron-up"></i>' : '<i class="fas fa-chevron-down"></i>';
+    localStorage.setItem(STORAGE_KEY_COLLAPSED, isCollapsed.toString());
+  });
+
+  tableHeader.addEventListener("click", () => {
+    const isCollapsed = tableContainer.classList.toggle("collapsed");
+    toggle.innerHTML = isCollapsed ? '<i class="fas fa-chevron-up"></i>' : '<i class="fas fa-chevron-down"></i>';
+    localStorage.setItem(STORAGE_KEY_COLLAPSED, isCollapsed.toString());
+  });
+
+  wrapToggle.addEventListener("click", () => {
+    wrapEnabled = !wrapEnabled;
+    applyWrap();
+  });
 
   prettifyBtn.addEventListener("click", () => {
     try {
@@ -617,8 +1163,7 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
         if (node.match(/^<?\w[^>]*[^\/]$/)) indent++;
       });
       editor.value = formatted.trim().replace(/^<|>$/g, "");
-      updateHighlight();
-      saveToHistory(editor.value);
+      recordChange();
     } catch (e) {
       caido.window.showToast("Failed to prettify XML.", { variant: "error" });
     }
@@ -626,8 +1171,7 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
 
   minifyBtn.addEventListener("click", () => {
     editor.value = editor.value.replace(/>\s+</g, "><").trim();
-    updateHighlight();
-    saveToHistory(editor.value);
+    recordChange();
   });
 
   // Sidebar
@@ -650,7 +1194,21 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
   attackGrid.className = "saml-button-grid";
   attackCard.appendChild(attackGrid);
 
-  const signBtn = caido.ui.button({ label: "Sign Message", variant: "secondary", size: "small" });
+  // Signature Operations Group
+  const sigGroup = document.createElement("div");
+  sigGroup.className = "saml-button-group";
+  attackGrid.appendChild(sigGroup);
+  const sigGroupLabel = document.createElement("div");
+  sigGroupLabel.className = "saml-button-group-label";
+  sigGroupLabel.textContent = "Signature";
+  sigGroup.appendChild(sigGroupLabel);
+  const sigGroupBtns = document.createElement("div");
+  sigGroupBtns.className = "saml-button-group-buttons";
+  sigGroup.appendChild(sigGroupBtns);
+
+  const signBtn = caido.ui.button({ label: "Sign", variant: "secondary", size: "small" });
+  signBtn.classList.add("cert-btn-disabled");
+  signBtn.title = "Not available: Requires cryptographic libraries not supported in Caido runtime";
   signBtn.addEventListener("click", async () => {
     const xml = editor.value;
     if (!xml) return;
@@ -683,9 +1241,9 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       caido.window.showToast("Signing failed.", { variant: "error" });
     }
   });
-  attackGrid.appendChild(signBtn);
+  sigGroupBtns.appendChild(signBtn);
 
-  const removeSigBtn = caido.ui.button({ label: "Remove All Signatures", variant: "secondary", size: "small" });
+  const removeSigBtn = caido.ui.button({ label: "Remove Signatures", variant: "secondary", size: "small" });
   removeSigBtn.addEventListener("click", async () => {
     const xml = editor.value;
     if (!xml) return;
@@ -703,9 +1261,9 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       caido.window.showToast("Failed to remove signatures.", { variant: "error" });
     }
   });
-  attackGrid.appendChild(removeSigBtn);
+  sigGroupBtns.appendChild(removeSigBtn);
 
-  const removeDocSigBtn = caido.ui.button({ label: "Remove Document Sig", variant: "secondary", size: "small" });
+  const removeDocSigBtn = caido.ui.button({ label: "Remove Doc Sig", variant: "secondary", size: "small" });
   removeDocSigBtn.addEventListener("click", async () => {
     const xml = editor.value;
     if (!xml) return;
@@ -723,7 +1281,7 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       caido.window.showToast("Failed to remove document signature.", { variant: "error" });
     }
   });
-  attackGrid.appendChild(removeDocSigBtn);
+  sigGroupBtns.appendChild(removeDocSigBtn);
 
   const removeAssertionSigBtn = caido.ui.button({ label: "Remove Assertion Sig", variant: "secondary", size: "small" });
   removeAssertionSigBtn.addEventListener("click", async () => {
@@ -743,9 +1301,83 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       caido.window.showToast("Failed to remove assertion signatures.", { variant: "error" });
     }
   });
-  attackGrid.appendChild(removeAssertionSigBtn);
+  sigGroupBtns.appendChild(removeAssertionSigBtn);
 
-  const sendCertBtn = caido.ui.button({ label: "Send Cert to Manager", variant: "tertiary", size: "small" });
+  // Injection Attacks Group
+  const injectionGroup = document.createElement("div");
+  injectionGroup.className = "saml-button-group";
+  attackGrid.appendChild(injectionGroup);
+  const injectionGroupLabel = document.createElement("div");
+  injectionGroupLabel.className = "saml-button-group-label";
+  injectionGroupLabel.textContent = "Injection";
+  injectionGroup.appendChild(injectionGroupLabel);
+  const injectionGroupBtns = document.createElement("div");
+  injectionGroupBtns.className = "saml-button-group-buttons";
+  injectionGroup.appendChild(injectionGroupBtns);
+
+  const xxeBtn = caido.ui.button({ label: "XXE", variant: "tertiary", size: "small" });
+  xxeBtn.addEventListener("click", async () => {
+    const result = await showInputModal(caido, {
+      title: "Apply XXE Payload",
+      fields: [{ name: "url", label: "OOB Server URL", type: "text", placeholder: "http://your-server.com/xxe.dtd", required: true }],
+      confirmLabel: "Apply",
+    });
+    if (result?.url) {
+      try {
+        const response = await caido.backend.applyXXE(editor.value, result.url);
+        if (response.success && response.data) {
+          editor.value = response.data;
+          updateHighlight();
+          saveToHistory(editor.value);
+          caido.window.showToast("XXE payload applied.", { variant: "success" });
+        } else {
+          caido.window.showToast(`Failed: ${response.error?.message || "Unknown error"}`, { variant: "error" });
+        }
+      } catch (err) {
+        caido.window.showToast("Failed to apply XXE.", { variant: "error" });
+      }
+    }
+  });
+  injectionGroupBtns.appendChild(xxeBtn);
+
+  const xsltBtn = caido.ui.button({ label: "XSLT", variant: "tertiary", size: "small" });
+  xsltBtn.addEventListener("click", async () => {
+    const result = await showInputModal(caido, {
+      title: "Apply XSLT Payload",
+      fields: [{ name: "payload", label: "XSLT Content", type: "textarea", placeholder: "<xsl:stylesheet ...>", required: true }],
+      confirmLabel: "Apply",
+    });
+    if (result?.payload) {
+      try {
+        const response = await caido.backend.applyXSLT(editor.value, result.payload);
+        if (response.success && response.data) {
+          editor.value = response.data;
+          updateHighlight();
+          saveToHistory(editor.value);
+          caido.window.showToast("XSLT payload applied.", { variant: "success" });
+        } else {
+          caido.window.showToast(`Failed: ${response.error?.message || "Unknown error"}`, { variant: "error" });
+        }
+      } catch (err) {
+        caido.window.showToast("Failed to apply XSLT.", { variant: "error" });
+      }
+    }
+  });
+  injectionGroupBtns.appendChild(xsltBtn);
+
+  // Certificate Group
+  const certGroup = document.createElement("div");
+  certGroup.className = "saml-button-group";
+  attackGrid.appendChild(certGroup);
+  const certGroupLabel = document.createElement("div");
+  certGroupLabel.className = "saml-button-group-label";
+  certGroupLabel.textContent = "Certificate";
+  certGroup.appendChild(certGroupLabel);
+  const certGroupBtns = document.createElement("div");
+  certGroupBtns.className = "saml-button-group-buttons";
+  certGroup.appendChild(certGroupBtns);
+
+  const sendCertBtn = caido.ui.button({ label: "Extract to Manager", variant: "tertiary", size: "small" });
   sendCertBtn.addEventListener("click", async () => {
     const xml = editor.value;
     if (!xml) return;
@@ -769,7 +1401,7 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       const response = await caido.backend.importCertificate(pemCert);
       if (response.success) {
         caido.window.showToast("Certificate imported to manager.", { variant: "success" });
-        refreshCerts();
+        switchToTab("cert");
       } else {
         caido.window.showToast(`Import failed: ${response.error?.message}`, { variant: "error" });
       }
@@ -777,57 +1409,7 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
       caido.window.showToast("Failed to extract certificate.", { variant: "error" });
     }
   });
-  attackGrid.appendChild(sendCertBtn);
-
-  const xxeBtn = caido.ui.button({ label: "Apply XXE", variant: "tertiary", size: "small" });
-  xxeBtn.addEventListener("click", async () => {
-    const result = await showInputModal(caido, {
-      title: "Apply XXE Payload",
-      fields: [{ name: "url", label: "OOB Server URL", type: "text", placeholder: "http://your-server.com/xxe.dtd", required: true }],
-      confirmLabel: "Apply",
-    });
-    if (result?.url) {
-      try {
-        const response = await caido.backend.applyXXE(editor.value, result.url);
-        if (response.success && response.data) {
-          editor.value = response.data;
-          updateHighlight();
-          saveToHistory(editor.value);
-          caido.window.showToast("XXE payload applied.", { variant: "success" });
-        } else {
-          caido.window.showToast(`Failed: ${response.error?.message || "Unknown error"}`, { variant: "error" });
-        }
-      } catch (err) {
-        caido.window.showToast("Failed to apply XXE.", { variant: "error" });
-      }
-    }
-  });
-  attackGrid.appendChild(xxeBtn);
-
-  const xsltBtn = caido.ui.button({ label: "Apply XSLT", variant: "tertiary", size: "small" });
-  xsltBtn.addEventListener("click", async () => {
-    const result = await showInputModal(caido, {
-      title: "Apply XSLT Payload",
-      fields: [{ name: "payload", label: "XSLT Content", type: "textarea", placeholder: "<xsl:stylesheet ...>", required: true }],
-      confirmLabel: "Apply",
-    });
-    if (result?.payload) {
-      try {
-        const response = await caido.backend.applyXSLT(editor.value, result.payload);
-        if (response.success && response.data) {
-          editor.value = response.data;
-          updateHighlight();
-          saveToHistory(editor.value);
-          caido.window.showToast("XSLT payload applied.", { variant: "success" });
-        } else {
-          caido.window.showToast(`Failed: ${response.error?.message || "Unknown error"}`, { variant: "error" });
-        }
-      } catch (err) {
-        caido.window.showToast("Failed to apply XSLT.", { variant: "error" });
-      }
-    }
-  });
-  attackGrid.appendChild(xsltBtn);
+  certGroupBtns.appendChild(sendCertBtn);
 
   // XSW Card
   const xswCard = document.createElement("div");
@@ -865,6 +1447,238 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     xswGrid.appendChild(btn);
   }
 
+  // ========== Decoder Tab ==========
+  const decoderContainer = document.createElement("div");
+  decoderContainer.className = "decoder-container";
+  decoderTabContent.appendChild(decoderContainer);
+
+  // Input section
+  const decoderInputSection = document.createElement("div");
+  decoderInputSection.className = "decoder-input-section";
+  decoderContainer.appendChild(decoderInputSection);
+
+  const decoderInputLabel = document.createElement("div");
+  decoderInputLabel.className = "decoder-label";
+  decoderInputLabel.textContent = "Encoded SAML (URL-encoded, Base64, or Deflate+Base64)";
+  decoderInputSection.appendChild(decoderInputLabel);
+
+  const decoderInput = document.createElement("textarea");
+  decoderInput.className = "decoder-input";
+  decoderInput.placeholder = "Paste SAMLResponse or SAMLRequest value here...\n\nExamples:\n- URL-encoded: SAMLResponse=PHNhbWxwOlJl...\n- Base64: PHNhbWxwOlJlc3Bv...\n- Full URL: https://example.com/acs?SAMLResponse=...";
+  decoderInputSection.appendChild(decoderInput);
+
+  // Controls
+  const decoderControls = document.createElement("div");
+  decoderControls.className = "decoder-controls";
+  decoderInputSection.appendChild(decoderControls);
+
+  const decodeBtn = caido.ui.button({ label: "Decode", variant: "primary" });
+  decoderControls.appendChild(decodeBtn);
+
+  const clearBtn = caido.ui.button({ label: "Clear", variant: "tertiary" });
+  decoderControls.appendChild(clearBtn);
+
+  const decoderInfo = document.createElement("div");
+  decoderInfo.className = "decoder-info";
+  decoderInfo.textContent = "Auto-detects encoding format";
+  decoderControls.appendChild(decoderInfo);
+
+  // Output section
+  const decoderOutputSection = document.createElement("div");
+  decoderOutputSection.className = "decoder-output-section";
+  decoderContainer.appendChild(decoderOutputSection);
+
+  const decoderOutputHeader = document.createElement("div");
+  decoderOutputHeader.className = "decoder-output-header";
+  decoderOutputSection.appendChild(decoderOutputHeader);
+
+  const decoderOutputLabel = document.createElement("div");
+  decoderOutputLabel.className = "decoder-label";
+  decoderOutputLabel.textContent = "Decoded XML";
+  decoderOutputHeader.appendChild(decoderOutputLabel);
+
+  const decoderTypeBadge = document.createElement("span");
+  decoderTypeBadge.className = "decoder-type-badge";
+  decoderTypeBadge.style.display = "none";
+  decoderOutputHeader.appendChild(decoderTypeBadge);
+
+  const decoderOutput = document.createElement("div");
+  decoderOutput.className = "decoder-output empty";
+  decoderOutput.textContent = "Decoded SAML will appear here";
+  decoderOutputSection.appendChild(decoderOutput);
+
+  // Send to Editor button (hidden initially)
+  const sendToEditorBtn = caido.ui.button({ label: "Send to Editor", variant: "primary" });
+  sendToEditorBtn.style.display = "none";
+  decoderOutputSection.appendChild(sendToEditorBtn);
+
+  // Decoder functions
+  const tryDecodeBase64 = (input: string): string | null => {
+    try {
+      const decoded = atob(input);
+      // Check if it looks like XML
+      if (decoded.includes("<") && decoded.includes(">")) {
+        return decoded;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const tryDecodeDeflate = async (input: string): Promise<string | null> => {
+    try {
+      const binary = atob(input);
+      const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+      
+      // Try to decompress using DecompressionStream (Deflate-raw)
+      const ds = new DecompressionStream("deflate-raw");
+      const writer = ds.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      
+      const reader = ds.readable.getReader();
+      const chunks: Uint8Array[] = [];
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) chunks.push(value);
+      }
+      
+      const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+      const result = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        result.set(chunk, offset);
+        offset += chunk.length;
+      }
+      
+      const decoded = new TextDecoder().decode(result);
+      if (decoded.includes("<") && decoded.includes(">")) {
+        return decoded;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const extractSAMLParam = (input: string): { value: string; type: string } | null => {
+    // Try to extract SAMLResponse or SAMLRequest from URL or form data
+    const patterns = [
+      /SAMLResponse=([^&\s]+)/i,
+      /SAMLRequest=([^&\s]+)/i,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = input.match(pattern);
+      if (match) {
+        const paramName = pattern.source.includes("Response") ? "SAMLResponse" : "SAMLRequest";
+        return { value: match[1], type: paramName };
+      }
+    }
+    
+    // If no param found, assume the entire input is the value
+    return null;
+  };
+
+  const decodeSAML = async (input: string): Promise<{ xml: string; type: string; encoding: string } | null> => {
+    if (!input.trim()) return null;
+    
+    let value = input.trim();
+    let samlType = "SAML";
+    
+    // Try to extract from URL/form parameter
+    const extracted = extractSAMLParam(value);
+    if (extracted) {
+      value = extracted.value;
+      samlType = extracted.type;
+    }
+    
+    // URL decode if needed
+    try {
+      const urlDecoded = decodeURIComponent(value);
+      if (urlDecoded !== value) {
+        value = urlDecoded;
+      }
+    } catch {
+      // Not URL encoded
+    }
+    
+    // Check if already XML
+    if (value.trim().startsWith("<") && value.includes("saml")) {
+      return { xml: value, type: samlType, encoding: "Plain XML" };
+    }
+    
+    // Try Base64
+    const base64Decoded = tryDecodeBase64(value);
+    if (base64Decoded && base64Decoded.includes("saml")) {
+      return { xml: base64Decoded, type: samlType, encoding: "Base64" };
+    }
+    
+    // Try Deflate + Base64 (common for SAMLRequest)
+    const deflateDecoded = await tryDecodeDeflate(value);
+    if (deflateDecoded && deflateDecoded.includes("saml")) {
+      return { xml: deflateDecoded, type: samlType, encoding: "Deflate + Base64" };
+    }
+    
+    // If Base64 decoded but doesn't contain saml, still return it
+    if (base64Decoded) {
+      return { xml: base64Decoded, type: samlType, encoding: "Base64" };
+    }
+    
+    return null;
+  };
+
+  let decodedXML = "";
+
+  decodeBtn.addEventListener("click", async () => {
+    const input = decoderInput.value;
+    if (!input.trim()) {
+      caido.window.showToast("Please enter encoded SAML data.", { variant: "warning" });
+      return;
+    }
+
+    const result = await decodeSAML(input);
+    
+    if (result) {
+      decodedXML = result.xml;
+      decoderOutput.className = "decoder-output";
+      decoderOutput.textContent = result.xml;
+      decoderTypeBadge.textContent = `${result.type} (${result.encoding})`;
+      decoderTypeBadge.style.display = "inline-block";
+      sendToEditorBtn.style.display = "block";
+      caido.window.showToast("SAML decoded successfully!", { variant: "success" });
+    } else {
+      decodedXML = "";
+      decoderOutput.className = "decoder-output empty";
+      decoderOutput.textContent = "Failed to decode. Check input format.";
+      decoderTypeBadge.style.display = "none";
+      sendToEditorBtn.style.display = "none";
+      caido.window.showToast("Failed to decode SAML data.", { variant: "error" });
+    }
+  });
+
+  clearBtn.addEventListener("click", () => {
+    decoderInput.value = "";
+    decodedXML = "";
+    decoderOutput.className = "decoder-output empty";
+    decoderOutput.textContent = "Decoded SAML will appear here";
+    decoderTypeBadge.style.display = "none";
+    sendToEditorBtn.style.display = "none";
+  });
+
+  sendToEditorBtn.addEventListener("click", () => {
+    if (!decodedXML) return;
+    
+    editor.value = decodedXML;
+    updateHighlight();
+    saveToHistory(editor.value);
+    switchToTab("editor");
+    caido.window.showToast("SAML sent to editor!", { variant: "success" });
+  });
+
   // ========== Certificate Manager Tab ==========
   const certManager = document.createElement("div");
   certManager.className = "cert-manager";
@@ -876,8 +1690,12 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
 
   const importCertBtn = caido.ui.button({ label: "Import Certificate", variant: "primary", size: "small" });
   const createCertBtn = caido.ui.button({ label: "Create Self-Signed", variant: "secondary", size: "small" });
+  createCertBtn.classList.add("cert-btn-disabled");
+  createCertBtn.title = "Not available: Requires cryptographic libraries not supported in Caido runtime";
   const exportCertBtn = caido.ui.button({ label: "Export", variant: "tertiary", size: "small" });
   const cloneCertBtn = caido.ui.button({ label: "Clone", variant: "tertiary", size: "small" });
+  cloneCertBtn.classList.add("cert-btn-disabled");
+  cloneCertBtn.title = "Not available: Requires cryptographic libraries not supported in Caido runtime";
   const deleteCertBtn = caido.ui.button({ label: "Delete", variant: "tertiary", size: "small" });
   certActionsBar.append(importCertBtn, createCertBtn, exportCertBtn, cloneCertBtn, deleteCertBtn);
 
@@ -1015,23 +1833,6 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     }
   });
 
-  createCertBtn.addEventListener("click", async () => {
-    const result = await showInputModal(caido, {
-      title: "Create Self-Signed Certificate",
-      fields: [{ name: "subject", label: "Common Name (CN)", type: "text", placeholder: "example.com", required: true }],
-      confirmLabel: "Create",
-    });
-    if (result?.subject) {
-      const response = await caido.backend.createCertificate(result.subject);
-      if (response.success) {
-        caido.window.showToast("Certificate created.", { variant: "success" });
-        refreshCerts();
-      } else {
-        caido.window.showToast(`Creation failed: ${response.error?.message}`, { variant: "error" });
-      }
-    }
-  });
-
   exportCertBtn.addEventListener("click", () => {
     if (!selectedCertId) {
       caido.window.showToast("Select a certificate first.", { variant: "warning" });
@@ -1048,20 +1849,6 @@ export const createDashboard = (caido: Caido<SAMLBackendAPI>) => {
     a.click();
     URL.revokeObjectURL(url);
     caido.window.showToast("Certificate exported.", { variant: "success" });
-  });
-
-  cloneCertBtn.addEventListener("click", async () => {
-    if (!selectedCertId) {
-      caido.window.showToast("Select a certificate first.", { variant: "warning" });
-      return;
-    }
-    const response = await caido.backend.cloneCertificate(selectedCertId);
-    if (response.success) {
-      caido.window.showToast("Certificate cloned.", { variant: "success" });
-      refreshCerts();
-    } else {
-      caido.window.showToast(`Clone failed: ${response.error?.message}`, { variant: "error" });
-    }
   });
 
   deleteCertBtn.addEventListener("click", async () => {

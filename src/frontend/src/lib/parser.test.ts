@@ -16,7 +16,7 @@ describe("SAMLInfoParser", () => {
 
       const info = SAMLInfoParser.parse(xml);
       expect(info).not.toBeNull();
-      expect(info?.issuer).toBe("https://example.com/idp");
+      expect(info?.issuerAssertion).toBe("https://example.com/idp");
     });
 
     it("should extract assertion ID", () => {
@@ -168,7 +168,7 @@ describe("SAMLInfoParser", () => {
       // In a browser, DOMParser would also be lenient
       expect(info).not.toBeNull();
       // The parser should return an empty SAMLInfo object since there's no SAML content
-      expect(info?.issuer).toBe("");
+      expect(info?.issuerAssertion).toBe("");
     });
 
     it("should handle empty XML gracefully", () => {
@@ -200,7 +200,7 @@ describe("SAMLInfoParser", () => {
 
       const info = SAMLInfoParser.parse(xml);
       expect(info).not.toBeNull();
-      expect(info?.issuer).toBe("https://example.com/idp");
+      expect(info?.issuerAssertion).toBe("https://example.com/idp");
       expect(info?.assertionId).toBe("_abc123");
       expect(info?.subject.nameId).toBe("user@example.com");
       expect(info?.conditions.audiences).toContain("https://app.example.com");
@@ -220,7 +220,7 @@ describe("SAMLInfoParser", () => {
 
       const info = SAMLInfoParser.parse(xml);
       expect(info).not.toBeNull();
-      expect(info?.issuer).toBe("https://idp.example.com");
+      expect(info?.issuerAssertion).toBe("https://idp.example.com");
       expect(info?.assertionId).toBe("_xyz789");
       expect(info?.subject.nameId).toBe("admin@example.com");
     });

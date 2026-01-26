@@ -61,6 +61,8 @@ export const createValidationStatus = (
     }
     .validation-status-text {
       flex: 1;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
     .validation-status-errors {
       display: flex;
@@ -178,6 +180,16 @@ export const createValidationStatus = (
   // Listen to editor input
   editor.addEventListener("input", triggerValidation);
 
+  // Trigger validation immediately on blur (when editor loses focus)
+  const handleBlur = () => {
+    if (validationTimeout) {
+      clearTimeout(validationTimeout);
+      validationTimeout = null;
+    }
+    performValidation();
+  };
+  editor.addEventListener("blur", handleBlur);
+
   // Initial validation
   performValidation();
 
@@ -190,6 +202,7 @@ export const createValidationStatus = (
         clearTimeout(validationTimeout);
       }
       editor.removeEventListener("input", triggerValidation);
+      editor.removeEventListener("blur", handleBlur);
     },
   };
 };

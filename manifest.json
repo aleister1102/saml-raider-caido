@@ -1,7 +1,7 @@
 {
   "id": "saml-raider",
   "name": "SAML Raider",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "SAML2 manipulation and certificate management plugin for Caido.",
   "author": {
     "name": "insomnia1102",

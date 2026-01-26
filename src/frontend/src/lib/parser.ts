@@ -3,7 +3,8 @@
  */
 
 export interface SAMLInfo {
-  issuer: string;
+  issuerResponse: string;
+  issuerAssertion: string;
   assertionId: string;
   subject: {
     nameId: string;
@@ -53,7 +54,8 @@ export class SAMLInfoParser {
       }
 
       const info: SAMLInfo = {
-        issuer: "",
+        issuerResponse: "",
+        issuerAssertion: "",
         assertionId: "",
         subject: {
           nameId: "",
@@ -68,16 +70,24 @@ export class SAMLInfoParser {
         signaturePresent: false,
       };
 
-      // Extract Issuer
-      const issuerElements = this.findElements(xmlDoc, "Issuer");
-      if (issuerElements.length > 0) {
-        info.issuer = issuerElements[0].textContent || "";
+      // Extract Issuers
+      const responseElements = this.findElements(xmlDoc, "Response");
+      if (responseElements.length > 0) {
+        const respIssuer = this.findDirectChild(responseElements[0], "Issuer");
+        if (respIssuer) info.issuerResponse = respIssuer.textContent || "";
       }
 
-      // Extract Assertion ID
       const assertionElements = this.findElements(xmlDoc, "Assertion");
       if (assertionElements.length > 0) {
         info.assertionId = assertionElements[0].getAttribute("ID") || "";
+        const assIssuer = this.findDirectChild(assertionElements[0], "Issuer");
+        if (assIssuer) info.issuerAssertion = assIssuer.textContent || "";
+      }
+
+      // If we only have one issuer and it's not set in either, try the old way as fallback
+      if (!info.issuerResponse && !info.issuerAssertion) {
+        const allIssuers = this.findElements(xmlDoc, "Issuer");
+        if (allIssuers.length > 0) info.issuerAssertion = allIssuers[0].textContent || "";
       }
 
       // Extract Subject/NameID
@@ -204,5 +214,22 @@ export class SAMLInfoParser {
 
     // Remove duplicates
     return Array.from(new Set(elements));
+  }
+
+  /**
+   * Find direct child element by tag name (ignoring namespace)
+   */
+  private static findDirectChild(parent: Element, tagName: string): Element | null {
+    for (let i = 0; i < parent.childNodes.length; i++) {
+      const node = parent.childNodes[i];
+      if (node.nodeType === 1) { // Element node
+        const el = node as Element;
+        const localName = el.localName || el.nodeName.split(":").pop();
+        if (localName === tagName) {
+          return el;
+        }
+      }
+    }
+    return null;
   }
 }

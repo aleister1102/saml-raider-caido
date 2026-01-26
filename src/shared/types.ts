@@ -33,7 +33,8 @@ export interface BackendResponse<T> {
 
 // SAML Information extracted from assertions
 export interface SAMLInfo {
-  issuer: string;
+  issuerResponse: string;
+  issuerAssertion: string;
   assertionId: string;
   subject: {
     nameId: string;
